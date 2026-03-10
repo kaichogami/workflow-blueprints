@@ -1,0 +1,92 @@
+{
+  "id": "multi-site-analytics",
+  "name": "Multi-Site Analytics Dashboard",
+  "description": "Unified analytics command center across multiple sites. Creates analytics sites, organizes them in a folder, and builds a multi-source tabbed dashboard with traffic overview, visitor profiles, and live today view.",
+  "tags": ["analytics", "multi-source", "dashboard", "monitoring"],
+  "primitives": ["folder", "analytics", "dashboard"],
+  "steps": [
+    {
+      "type": "folder",
+      "ref": "analytics-folder",
+      "config": {
+        "name": "Analytics Command Center",
+        "description": "All analytics sites and the combined dashboard"
+      }
+    },
+    {
+      "type": "analytics",
+      "ref": "primary-site",
+      "config": {
+        "name": "Primary Site",
+        "domain": "example.com",
+        "folderId": "$ref:analytics-folder"
+      }
+    },
+    {
+      "type": "analytics",
+      "ref": "secondary-site",
+      "config": {
+        "name": "Secondary Site",
+        "domain": "blog.example.com",
+        "folderId": "$ref:analytics-folder"
+      }
+    },
+    {
+      "type": "analytics",
+      "ref": "hosted-pages",
+      "config": {
+        "name": "Hosted Pages",
+        "subdomainId": "$subdomain",
+        "folderId": "$ref:analytics-folder"
+      }
+    },
+    {
+      "type": "dashboard",
+      "ref": "command-center",
+      "config": {
+        "title": "Analytics Command Center",
+        "folderId": "$ref:analytics-folder",
+        "isPublic": false,
+        "dsl": {
+          "version": 1,
+          "sources": {
+            "primary": { "type": "analytics", "analyticsSiteId": "$ref:primary-site" },
+            "secondary": { "type": "analytics", "analyticsSiteId": "$ref:secondary-site" },
+            "hosted": { "type": "analytics", "analyticsSiteId": "$ref:hosted-pages" }
+          },
+          "tabs": [
+            {
+              "label": "Overview (30d)",
+              "widgets": [
+                { "type": "metric_card", "title": "Primary Site Views", "source": "primary", "metric": "page_views", "period": "30d", "compare": true },
+                { "type": "metric_card", "title": "Secondary Site Views", "source": "secondary", "metric": "page_views", "period": "30d", "compare": true },
+                { "type": "metric_card", "title": "Hosted Pages Views", "source": "hosted", "metric": "page_views", "period": "30d", "compare": true },
+                { "type": "line_chart", "title": "Primary Daily Traffic", "source": "primary", "metric": "page_views", "period": "30d", "groupBy": "$submitted_at:day" },
+                { "type": "line_chart", "title": "Secondary Daily Traffic", "source": "secondary", "metric": "page_views", "period": "30d", "groupBy": "$submitted_at:day" }
+              ]
+            },
+            {
+              "label": "Visitor Profile",
+              "widgets": [
+                { "type": "pie_chart", "title": "Devices", "source": "primary", "metric": "page_views", "breakdownBy": "device", "period": "30d", "groupBy": "device" },
+                { "type": "pie_chart", "title": "Browsers", "source": "primary", "metric": "page_views", "breakdownBy": "browser", "period": "30d", "groupBy": "browser" },
+                { "type": "bar_chart", "title": "Countries", "source": "primary", "metric": "page_views", "breakdownBy": "country", "period": "30d", "groupBy": "country" },
+                { "type": "bar_chart", "title": "Top Referrers", "source": "primary", "metric": "page_views", "breakdownBy": "referrer", "period": "30d", "groupBy": "referrer" }
+              ]
+            },
+            {
+              "label": "Today (Live)",
+              "widgets": [
+                { "type": "metric_card", "title": "Primary Today", "source": "primary", "metric": "page_views", "period": "today" },
+                { "type": "metric_card", "title": "Primary Unique", "source": "primary", "metric": "unique_visitors", "period": "today" },
+                { "type": "metric_card", "title": "Secondary Today", "source": "secondary", "metric": "page_views", "period": "today" },
+                { "type": "metric_card", "title": "Hosted Today", "source": "hosted", "metric": "page_views", "period": "today" },
+                { "type": "bar_chart", "title": "Top Pages Today", "source": "primary", "metric": "page_views", "breakdownBy": "url", "period": "today", "groupBy": "url" }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
